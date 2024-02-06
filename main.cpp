@@ -1,251 +1,155 @@
-#define GLFW_INCLUDE_NONE
-
-#include <GLFW/glfw3.h>
-#include <chrono>
-#include <glad/gl.h>
-#include <glm/glm.hpp>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <algorithm>
+#include <limits>
 #include <iostream>
-#include <thread>
+#include <fstream>
+#include <vector>
+#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/noise.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/norm.hpp>
+const float sphere_radius = 1.5;   // all the explosion fits in a sphere with this radius. The center lies in the origin.
+const float noise_amplitude = 1.0; // amount of noise applied to the sphere (towards the center)
 
-const char *vertexShaderSrc = R"(
-#version 420
-
-layout (location = 0) in vec2 aPos;
-
-void main() {
-    gl_Position = vec4(aPos, 1, 1);
-}
-
-)";
-
-const char *fragmentShaderSrc = R"(
-#version 420
-
-layout (location = 0) out vec4 outColor;
-
-void main() {
-    outColor = vec4(1, 0, 0, 1);
-}
-
-)";
-
-void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
-                      GLsizei length, GLchar const *message,
-                      void const *user_param)
+float hash(const float n)
 {
-  if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
-    return;
-
-  auto const src_str = [source]()
-  {
-    switch (source)
-    {
-    case GL_DEBUG_SOURCE_API:
-      return "API";
-    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-      return "WINDOW SYSTEM";
-    case GL_DEBUG_SOURCE_SHADER_COMPILER:
-      return "SHADER COMPILER";
-    case GL_DEBUG_SOURCE_THIRD_PARTY:
-      return "THIRD PARTY";
-    case GL_DEBUG_SOURCE_APPLICATION:
-      return "APPLICATION";
-    case GL_DEBUG_SOURCE_OTHER:
-      return "OTHER";
-    default:
-      return "UNKNOWN SOURCE";
-    }
-  }();
-
-  auto const type_str = [type]()
-  {
-    switch (type)
-    {
-    case GL_DEBUG_TYPE_ERROR:
-      return "ERROR";
-    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-      return "DEPRECATED_BEHAVIOR";
-    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-      return "UNDEFINED_BEHAVIOR";
-    case GL_DEBUG_TYPE_PORTABILITY:
-      return "PORTABILITY";
-    case GL_DEBUG_TYPE_PERFORMANCE:
-      return "PERFORMANCE";
-    case GL_DEBUG_TYPE_MARKER:
-      return "MARKER";
-    case GL_DEBUG_TYPE_OTHER:
-      return "OTHER";
-    default:
-      return "UNKNOWN TYPE";
-    }
-  }();
-
-  auto const severity_str = [severity]()
-  {
-    switch (severity)
-    {
-    case GL_DEBUG_SEVERITY_NOTIFICATION:
-      return "NOTIFICATION";
-    case GL_DEBUG_SEVERITY_LOW:
-      return "LOW";
-    case GL_DEBUG_SEVERITY_MEDIUM:
-      return "MEDIUM";
-    case GL_DEBUG_SEVERITY_HIGH:
-      return "HIGH";
-    default:
-      return "UNKNOWN SEVERITY";
-    }
-  }();
-  std::cout << src_str << ", " << type_str << ", " << severity_str << ", " << id
-            << ": " << message << '\n';
+  float x = sin(n) * 43758.5453f;
+  return x - floor(x);
 }
 
-int main(int argc, char *argv[])
+template <typename T>
+inline T lerp(const T &v0, const T &v1, float t)
 {
+  return v0 + (v1 - v0) * std::max(0.f, std::min(1.f, t));
+}
 
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+float noise(const glm::vec3 &x)
+{
+  glm::vec3 p(floor(x.x), floor(x.y), floor(x.z));
+  glm::vec3 f(x.x - p.x, x.y - p.y, x.z - p.z);
+  f = f * (f * (glm::vec3(3.f, 3.f, 3.f) - f * 2.f));
+  float n = glm::dot(p, glm::vec3(1.f, 57.f, 113.f));
+  return lerp(lerp(
+                  lerp(hash(n + 0.f), hash(n + 1.f), f.x),
+                  lerp(hash(n + 57.f), hash(n + 58.f), f.x), f.y),
+              lerp(
+                  lerp(hash(n + 113.f), hash(n + 114.f), f.x),
+                  lerp(hash(n + 170.f), hash(n + 171.f), f.x), f.y),
+              f.z);
+}
 
-  auto window = glfwCreateWindow(800, 600, "Example", nullptr, nullptr);
-  if (!window)
-    throw std::runtime_error("Error creating glfw window");
-  glfwMakeContextCurrent(window);
-  glfwSwapInterval(1);
+glm::vec3 rotate(const glm::vec3 &v)
+{
+  return glm::vec3(glm::dot(glm::vec3(0.00f, 0.80f, 0.60f), v),
+                   glm::dot(glm::vec3(-0.80f, 0.36f, -0.48f), v),
+                   glm::dot(glm::vec3(-0.60f, -0.48f, 0.64f), v));
+}
+float fractal_brownian_motion(const glm::vec3 &x)
+{
+  glm::vec3 p = rotate(x);
+  float f = 0;
+  f += 0.5000 * noise(p);
+  p = p * 2.32f;
+  f += 0.2500 * noise(p);
+  p = p * 3.03f;
+  f += 0.1250 * noise(p);
+  p = p * 2.61f;
+  f += 0.0625 * noise(p);
+  return f / 0.9375f;
+}
 
-  if (!gladLoaderLoadGL())
-    throw std::runtime_error("Error initializing glad");
-  /**
-   * Initialize ImGui
-   */
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGui_ImplGlfw_InitForOpenGL(window, true);
-  ImGui_ImplOpenGL3_Init("#version 420 core");
-  ImGui::StyleColorsClassic();
-    std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
+glm::vec3 palette_fire(const float d)
+{                                        // simple linear gradent yellow-orange-red-darkgray-gray. d is supposed to vary from 0 to 1
+  const glm::vec3 yellow(1.7, 1.3, 1.0); // note that the color is "hot", i.e. has components >1
+  const glm::vec3 orange(1.0, 0.6, 0.0);
+  const glm::vec3 red(1.0, 0.0, 0.0);
+  const glm::vec3 darkgray(0.2, 0.2, 0.2);
+  const glm::vec3 gray(0.4, 0.4, 0.4);
 
-  glEnable(GL_CULL_FACE);
-  // glEnable(GL_DEBUG_OUTPUT);
-  // glDebugMessageCallback(message_callback, nullptr);
-  /**
-   * Compile shader
-   */
-  int success;
-  char infoLog[512];
-  auto vertexShader = glCreateShader(GL_VERTEX_SHADER);
+  float x = std::max(0.f, std::min(1.f, d));
+  if (x < .25f)
+    return lerp(gray, darkgray, x * 4.f);
+  else if (x < .5f)
+    return lerp(darkgray, red, x * 4.f - 1.f);
+  else if (x < .75f)
+    return lerp(red, orange, x * 4.f - 2.f);
+  return lerp(orange, yellow, x * 4.f - 3.f);
+}
 
-  glShaderSource(vertexShader, 1, &vertexShaderSrc, 0);
-  glCompileShader(vertexShader);
+float signed_distance(const glm::vec3 &p)
+{ // this function defines the implicit surface we render
+  float displacement = -fractal_brownian_motion(p * 3.4f) * noise_amplitude;
+  return glm::length(p) - (sphere_radius + displacement);
+}
 
-
-  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-  if (!success)
+bool sphere_trace(const glm::vec3 &orig, const glm::vec3 &dir, glm::vec3 &pos)
+{ // Notice the early discard; in fact I know that the noise() function produces non-negative values,
+  pos = orig;
+  for (size_t i = 0; i < 128; i++)
   {
-    glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-    std::cerr << "Vertex shader compilation failed:" << std::endl;
-    std::cerr << infoLog << std::endl;
-    return 0;
+    float d = signed_distance(pos);
+    if (d < 0)
+      return true;
+    pos = pos + dir * std::max(d * 0.1f, .01f); // note that the step depends on the current distance, if we are far from the surface, we can do big steps
+  }
+  return false;
+}
+
+glm::vec3 distance_field_normal(const glm::vec3 &pos)
+{ // simple finite differences, very sensitive to the choice of the eps constant
+  const float eps = 0.1;
+  float d = signed_distance(pos);
+  float nx = signed_distance(pos + glm::vec3(eps, 0, 0)) - d;
+  float ny = signed_distance(pos + glm::vec3(0, eps, 0)) - d;
+  float nz = signed_distance(pos + glm::vec3(0, 0, eps)) - d;
+  return glm::normalize(glm::vec3(nx, ny, nz));
+}
+
+int main()
+{
+  const int width = 640 / 8;   // image width
+  const int height = 480 / 8;  // image height
+  const float fov = M_PI / 3.; // field of view angle
+  std::vector<glm::vec3> framebuffer(width * height);
+
+#pragma omp parallel for
+  for (size_t j = 0; j < height; j++)
+  { // actual rendering loop
+    for (size_t i = 0; i < width; i++)
+    {
+      float dir_x = (i + 0.5) - width / 2.;
+      float dir_y = -(j + 0.5) + height / 2.; // this flips the image at the same time
+      float dir_z = -height / (2. * tan(fov / 2.));
+      glm::vec3 hit;
+      std::vector<glm::vec3> spheres = {glm::vec3(0, 0, 3), glm::vec3(2, 0, 3)};
+
+      if (sphere_trace(glm::vec3(0, 0, 3), glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), hit))
+      { // the camera is placed to (0,0,3) and it looks along the -z axis
+        float noise_level = (sphere_radius - glm::length(hit)) / noise_amplitude;
+        glm::vec3 light_dir = glm::normalize(glm::vec3(10, 10, 10) - hit); // one light is placed to (10,10,10)
+        float light_intensity = std::max(0.4f, glm::length(light_dir * distance_field_normal(hit)));
+        framebuffer[i + j * width] = palette_fire((-.2 + noise_level) * 2) * light_intensity;
+      }
+      else
+      {
+        framebuffer[i + j * width] = glm::vec3(0.2, 0.7, 0.8); // background color
+      }
+    }
   }
 
-  auto fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader, 1, &fragmentShaderSrc, 0);
-  glCompileShader(fragmentShader);
-
-  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-  if (!success)
+  std::ofstream ofs("./out.ppm", std::ios::binary); // save the framebuffer to file
+  ofs << "P6\n"
+      << width << " " << height << "\n255\n";
+  for (size_t i = 0; i < height * width; ++i)
   {
-    glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-    std::cerr << "Fragment shader compilation failed:" << std::endl;
-    std::cerr << infoLog << std::endl;
-    return 0;
+    for (size_t j = 0; j < 3; j++)
+    {
+      ofs << (char)(std::max(0, std::min(255, static_cast<int>(255 * framebuffer[i][j]))));
+    }
   }
+  ofs.close();
 
-  auto program = glCreateProgram();
-  glAttachShader(program, vertexShader);
-  glAttachShader(program, fragmentShader);
-  glLinkProgram(program);
-
-  glGetProgramiv(program, GL_LINK_STATUS, &success);
-  if (!success)
-  {
-    glGetShaderInfoLog(program, 512, nullptr, infoLog);
-    std::cerr << "Shader linking failed:" << std::endl;
-    std::cerr << infoLog << std::endl;
-    return 0;
-  }
-
-  glDetachShader(program, vertexShader);
-  glDetachShader(program, fragmentShader);
-
-  /**
-   * Create vertex array and buffers
-   */
-  GLuint vao;
-  glCreateVertexArrays(1, &vao);
-
-  glEnableVertexArrayAttrib(vao, 0);
-  glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE,
-                            offsetof(glm::vec2, x));
-
-  glVertexArrayAttribBinding(vao, 0, 0);
-
-  glm::vec2 vertices[] = {{-0.2, -0.2}, {-0.2, 0.2}, {0.2, 0.2}, {0.2, -0.2}};
-
-  GLuint vbo;
-  glCreateBuffers(1, &vbo);
-  glNamedBufferStorage(vbo, sizeof(glm::vec2) * 4, vertices,
-                       GL_DYNAMIC_STORAGE_BIT);
-
-  std::uint32_t indices[] = {0, 2, 1, 2, 0, 3};
-
-  GLuint ibo;
-  glCreateBuffers(1, &ibo);
-  glNamedBufferStorage(ibo, sizeof(std::uint32_t) * 6, indices,
-                       GL_DYNAMIC_STORAGE_BIT);
-
-  glBindVertexArray(vao);
-  glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(glm::vec2));
-  glVertexArrayElementBuffer(vao, ibo);
-  glUseProgram(program);
-  glClearColor(1, 1, 1, 1);
-
-  while (!glfwWindowShouldClose(window))
-  {
-    glfwPollEvents();
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    static bool showDemo = false;
-    ImGui::Begin("Example");
-    if (ImGui::Button("Show/Hide ImGui demo"))
-      showDemo = !showDemo;
-    ImGui::End();
-    if (showDemo)
-      ImGui::ShowDemoWindow(&showDemo);
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    glfwSwapBuffers(window);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  }
-
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
-
-  glfwDestroyWindow(window);
-  glfwTerminate();
   return 0;
 }

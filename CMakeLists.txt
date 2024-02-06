@@ -1,20 +1,30 @@
-include(FetchContent)
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required (VERSION 3.1)
+project (snowkolov)
 
-project(snowkolov)
+include(CheckCXXCompilerFlag)
 
-set(CMAKE_CXX_STANDARD 17)
+function(enable_cxx_compiler_flag_if_supported flag)
+    string(FIND "${CMAKE_CXX_FLAGS}" "${flag}" flag_already_set)
+    if(flag_already_set EQUAL -1)
+        check_cxx_compiler_flag("${flag}" flag_supported)
+        if(flag_supported)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" PARENT_SCOPE)
+        endif()
+        unset(flag_supported CACHE)
+    endif()
+endfunction()
 
-FetchContent_Declare(
-        imgui-glfw-glad-glm
-        GIT_REPOSITORY https://github.com/cmmw/imgui-glfw-glad-glm.git
-)
-FetchContent_MakeAvailable(imgui-glfw-glad-glm)
+enable_cxx_compiler_flag_if_supported("-Wall")
+enable_cxx_compiler_flag_if_supported("-Wextra")
+enable_cxx_compiler_flag_if_supported("-pedantic")
+enable_cxx_compiler_flag_if_supported("-std=c++11")
+enable_cxx_compiler_flag_if_supported("-O3")
+enable_cxx_compiler_flag_if_supported("-fopenmp")
 
-add_executable(app main.cpp)
+file(GLOB SOURCES *.h *.cpp)
 
-target_link_libraries(
-        app
-        imgui
-        glm
-)
+add_subdirectory(lib/glm)
+include_directories(lib/glm)
+
+add_executable(${PROJECT_NAME} ${SOURCES})
+
