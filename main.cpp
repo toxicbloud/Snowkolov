@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <algorithm>
+#include <cstdio>
 #include <limits>
 #include <iostream>
 #include <fstream>
@@ -10,8 +11,17 @@
 #include <glm/gtc/noise.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+#define PATH_MAX 2000
 const float sphere_radius = 1.5;   // all the explosion fits in a sphere with this radius. The center lies in the origin.
 const float noise_amplitude = 1.0; // amount of noise applied to the sphere (towards the center)
+
+inline void mainImage(glm::vec4 &fragColor, const glm::vec2 &fragCoord);
+glm::mat3 construitCamera( const glm::vec3 &co, const glm::vec3 &ci, float ar);
 
 float hash(const float n)
 {
@@ -109,8 +119,8 @@ glm::vec3 distance_field_normal(const glm::vec3 &pos)
 
 int main()
 {
-  const int width = 640 / 8;   // image width
-  const int height = 480 / 8;  // image height
+  const int width = 640 ;   // image width
+  const int height = 480 ;  // image height
   const float fov = M_PI / 3.; // field of view angle
   std::vector<glm::vec3> framebuffer(width * height);
 
@@ -122,24 +132,49 @@ int main()
       float dir_x = (i + 0.5) - width / 2.;
       float dir_y = -(j + 0.5) + height / 2.; // this flips the image at the same time
       float dir_z = -height / (2. * tan(fov / 2.));
-      glm::vec3 hit;
-      std::vector<glm::vec3> spheres = {glm::vec3(0, 0, 3), glm::vec3(2, 0, 3)};
+      glm::vec4 col;
+      mainImage(col, glm::vec2(i, j));
+      framebuffer[i + j * width] = glm::vec3(col);
+      // glm::vec3 hit;
+      // std::vector<glm::vec3> spheres = {glm::vec3(0, 0, 3), glm::vec3(2, 0, 3)};
 
-      if (sphere_trace(glm::vec3(0, 0, 3), glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), hit))
-      { // the camera is placed to (0,0,3) and it looks along the -z axis
-        float noise_level = (sphere_radius - glm::length(hit)) / noise_amplitude;
-        glm::vec3 light_dir = glm::normalize(glm::vec3(10, 10, 10) - hit); // one light is placed to (10,10,10)
-        float light_intensity = std::max(0.4f, glm::length(light_dir * distance_field_normal(hit)));
-        framebuffer[i + j * width] = palette_fire((-.2 + noise_level) * 2) * light_intensity;
-      }
-      else
-      {
-        framebuffer[i + j * width] = glm::vec3(0.2, 0.7, 0.8); // background color
-      }
+      // if (sphere_trace(glm::vec3(0, 0, 3), glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), hit))
+      // { // the camera is placed to (0,0,3) and it looks along the -z axis
+      //   float noise_level = (sphere_radius - glm::length(hit)) / noise_amplitude;
+      //   glm::vec3 light_dir = glm::normalize(glm::vec3(10, 10, 10) - hit); // one light is placed to (10,10,10)
+      //   float light_intensity = std::max(0.4f, glm::length(light_dir * distance_field_normal(hit)));
+      //   framebuffer[i + j * width] = palette_fire((-.2 + noise_level) * 2) * light_intensity;
+      // }
+      // else
+      // {
+      //   framebuffer[i + j * width] = glm::vec3(0.2, 0.7, 0.8); // background color
+      // }
     }
   }
 
-  std::ofstream ofs("./out.ppm", std::ios::binary); // save the framebuffer to file
+  uint8_t* pixels = new uint8_t[width * height * 3];
+
+    int index = 0;
+    for (int j = height - 1; j >= 0; --j)
+    {
+        for (int i = 0; i < width; ++i)
+        {
+            float r = (float) framebuffer[i+j*width].x;
+            float g = (float) framebuffer[i+j*width].y;
+            float b = (float) framebuffer[i+j*width].z;
+            int ir = int(255.99 * r);
+            int ig = int(255.99 * g);
+            int ib = int(255.99 * b);
+
+            pixels[index++] = ir;
+            pixels[index++] = ig;
+            pixels[index++] = ib;
+        }
+    }
+
+    stbi_write_png("out.png", width, height, 3, pixels, width * 3);
+
+    std::ofstream ofs("./out.ppm", std::ios::binary); // save the framebuffer to file
   ofs << "P6\n"
       << width << " " << height << "\n255\n";
   for (size_t i = 0; i < height * width; ++i)
@@ -152,4 +187,39 @@ int main()
   ofs.close();
 
   return 0;
+}
+
+inline void mainImage(glm::vec4 &fragColor, const glm::vec2 &fragCoord)
+{
+  fragColor = glm::vec4(cos(fragCoord.x), cos(fragCoord.y), fragCoord.x-fragCoord.y, 1.0);
+
+    // Définition de la caméra à partir de son point cible
+    glm::vec3 cibleCamera = glm::vec3(0.0); // Point visé par la caméra (centre monde par défaut)
+    float focale = 2.0;            // Distance focale
+    float angle = 0.25f / 2.0;   // Angle de positionnement de la caméra autour du point cible (rotation sur verticale)
+    float distanceCamera = 10.0;   // Distance de la caméra au point cible
+    float angleRoulis = 0.0;       // Angle de roulis autour de l'axe optique
+    // Position du centre optique de la caméra avec prise en compte de la souris
+    glm::vec3 centreCamera = cibleCamera + glm::vec3(distanceCamera * cos(angle + M_PI),  // ... Compléter la rotation avec la position x de la souris
+                                           10.0 , distanceCamera * sin(angle + M_PI)); // ... Compléter la rotation avec la position x de la souris
+    float distanceCameraCible = distance(centreCamera, cibleCamera);
+
+    // Construction de la matrice Caméra vers Monde
+    glm::mat3 camera = construitCamera(centreCamera, cibleCamera, angleRoulis);
+
+
+}
+
+glm::mat3 construitCamera( const glm::vec3 &co, const glm::vec3 &ci, float ar) {
+    glm::vec3 cw,cp,cu,cv;
+    // calcul de la direction du regard
+    cw = normalize(ci - co);
+    // calcul de la rotation de la verticale du monde par le roulis caméra ar
+    // cp = vec3(cos(ar), sin(ar), 0.0);
+    cp = glm::vec3(0.0, 1.0, 0.0);
+    // calcul de l'axe X caméra
+    cu = normalize(cross(cw, cp));
+    // calcul de l'axe Y caméra
+    cv = cross(cu, cw);
+    return glm::mat3(cu, cv, cw);
 }
