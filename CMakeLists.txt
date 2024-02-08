@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.1)
-project (snowkolov)
+cmake_minimum_required(VERSION 3.1)
+project(snowkolov)
 
 include(CheckCXXCompilerFlag)
 
@@ -14,12 +14,25 @@ function(enable_cxx_compiler_flag_if_supported flag)
     endif()
 endfunction()
 
-enable_cxx_compiler_flag_if_supported("-Wall")
-enable_cxx_compiler_flag_if_supported("-Wextra")
-enable_cxx_compiler_flag_if_supported("-pedantic")
-enable_cxx_compiler_flag_if_supported("-std=c++11")
-enable_cxx_compiler_flag_if_supported("-O3")
-enable_cxx_compiler_flag_if_supported("-fopenmp")
+
+
+if (WIN32)
+    # Vérifie si le compilateur est MSVC
+    if (MSVC)
+        # Activer le support OpenMP pour MSVC
+        enable_cxx_compiler_flag_if_supported("/openmp /O2")
+    endif()
+endif()
+
+if(UNIX AND NOT APPLE)
+    # for Linux, BSD, Solaris, Minix
+    enable_cxx_compiler_flag_if_supported("-Wall")
+    enable_cxx_compiler_flag_if_supported("-Wextra")
+    enable_cxx_compiler_flag_if_supported("-pedantic")
+    enable_cxx_compiler_flag_if_supported("-std=c++11")
+    enable_cxx_compiler_flag_if_supported("-O3")
+    enable_cxx_compiler_flag_if_supported("-fopenmp")
+endif()
 
 file(GLOB SOURCES *.h *.cpp)
 
@@ -27,4 +40,3 @@ add_subdirectory(lib/glm)
 include_directories(lib/glm)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-

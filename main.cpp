@@ -20,6 +20,9 @@
 const float sphere_radius = 1.5;   // all the explosion fits in a sphere with this radius. The center lies in the origin.
 const float noise_amplitude = 1.0; // amount of noise applied to the sphere (towards the center)
 
+float width = 640.0/4;
+float height = 480.0/4;
+
 inline void mainImage(glm::vec4 &fragColor, const glm::vec2 &fragCoord);
 glm::mat3 construitCamera( const glm::vec3 &co, const glm::vec3 &ci, float ar);
 
@@ -119,36 +122,17 @@ glm::vec3 distance_field_normal(const glm::vec3 &pos)
 
 int main()
 {
-  const int width = 640 ;   // image width
-  const int height = 480 ;  // image height
   const float fov = M_PI / 3.; // field of view angle
   std::vector<glm::vec3> framebuffer(width * height);
 
 #pragma omp parallel for
-  for (size_t j = 0; j < height; j++)
+  for (int j = 0; j < height; j++)
   { // actual rendering loop
-    for (size_t i = 0; i < width; i++)
+    for (int i = 0; i < width; i++)
     {
-      float dir_x = (i + 0.5) - width / 2.;
-      float dir_y = -(j + 0.5) + height / 2.; // this flips the image at the same time
-      float dir_z = -height / (2. * tan(fov / 2.));
       glm::vec4 col;
       mainImage(col, glm::vec2(i, j));
       framebuffer[i + j * width] = glm::vec3(col);
-      // glm::vec3 hit;
-      // std::vector<glm::vec3> spheres = {glm::vec3(0, 0, 3), glm::vec3(2, 0, 3)};
-
-      // if (sphere_trace(glm::vec3(0, 0, 3), glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), hit))
-      // { // the camera is placed to (0,0,3) and it looks along the -z axis
-      //   float noise_level = (sphere_radius - glm::length(hit)) / noise_amplitude;
-      //   glm::vec3 light_dir = glm::normalize(glm::vec3(10, 10, 10) - hit); // one light is placed to (10,10,10)
-      //   float light_intensity = std::max(0.4f, glm::length(light_dir * distance_field_normal(hit)));
-      //   framebuffer[i + j * width] = palette_fire((-.2 + noise_level) * 2) * light_intensity;
-      // }
-      // else
-      // {
-      //   framebuffer[i + j * width] = glm::vec3(0.2, 0.7, 0.8); // background color
-      // }
     }
   }
 
@@ -166,9 +150,9 @@ int main()
             int ig = int(255.99 * g);
             int ib = int(255.99 * b);
 
-            pixels[index++] = ir;
-            pixels[index++] = ig;
-            pixels[index++] = ib;
+            pixels[index++] = (uint8_t )ir;
+            pixels[index++] = (uint8_t )ig;
+            pixels[index++] = (uint8_t )ib;
         }
     }
 
@@ -191,24 +175,32 @@ int main()
 
 inline void mainImage(glm::vec4 &fragColor, const glm::vec2 &fragCoord)
 {
-  fragColor = glm::vec4(cos(fragCoord.x), cos(fragCoord.y), fragCoord.x-fragCoord.y, 1.0);
+    float fov = M_PI / 3.0;
 
-    // Définition de la caméra à partir de son point cible
-    glm::vec3 cibleCamera = glm::vec3(0.0); // Point visé par la caméra (centre monde par défaut)
-    float focale = 2.0;            // Distance focale
-    float angle = 0.25f / 2.0;   // Angle de positionnement de la caméra autour du point cible (rotation sur verticale)
-    float distanceCamera = 10.0;   // Distance de la caméra au point cible
-    float angleRoulis = 0.0;       // Angle de roulis autour de l'axe optique
-    // Position du centre optique de la caméra avec prise en compte de la souris
-    glm::vec3 centreCamera = cibleCamera + glm::vec3(distanceCamera * cos(angle + M_PI),  // ... Compléter la rotation avec la position x de la souris
-                                           10.0 , distanceCamera * sin(angle + M_PI)); // ... Compléter la rotation avec la position x de la souris
-    float distanceCameraCible = distance(centreCamera, cibleCamera);
+    float aspect_ratio = width / height;
 
-    // Construction de la matrice Caméra vers Monde
-    glm::mat3 camera = construitCamera(centreCamera, cibleCamera, angleRoulis);
+    float dir_x = (fragCoord.x + 0.5f) - width / 2.0f;
+    float dir_y = -(fragCoord.y + 0.5f) + height / 2.0f;
+    float dir_z = -height / (2.0f * tan(fov / 2.0f));
 
+    glm::vec3 ray_origin(0.0, 0.0, 3.0); // Camera position
 
+    glm::vec3 ray_direction = glm::normalize(glm::vec3(dir_x, dir_y, dir_z));
+
+    glm::vec3 color(0.2, 0.7, 0.8); // Background color
+
+    glm::vec3 hit_point;
+    if (sphere_trace(ray_origin, ray_direction, hit_point))
+    {
+        float noise_level = (sphere_radius - glm::length(hit_point)) / noise_amplitude;
+        glm::vec3 light_dir = glm::normalize(glm::vec3(10.0, 10.0, 10.0) - hit_point);
+        float light_intensity = std::max(0.4f, glm::length(light_dir * distance_field_normal(hit_point)));
+        color = palette_fire((-.2f + noise_level) * 2.0f) * light_intensity;
+    }
+
+    fragColor = glm::vec4(color, 1.0);
 }
+
 
 glm::mat3 construitCamera( const glm::vec3 &co, const glm::vec3 &ci, float ar) {
     glm::vec3 cw,cp,cu,cv;
