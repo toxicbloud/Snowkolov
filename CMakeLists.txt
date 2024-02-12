@@ -34,7 +34,7 @@ if(UNIX AND NOT APPLE)
     enable_cxx_compiler_flag_if_supported("-fopenmp")
 endif()
 
-file(GLOB SOURCES *.h *.cpp)
+file(GLOB SOURCES *.hpp *.cpp src/*.hpp src/*.cpp)
 
 add_subdirectory(lib/glm)
 include_directories(lib/glm)
