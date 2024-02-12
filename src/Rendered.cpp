@@ -14,7 +14,7 @@ Rendered::~Rendered()
 
 float Rendered::getLightAmount(const glm::vec3& p, const glm::vec3& d)
 {
-    float ambient = 0.05f;
+    float ambient = 0.3f;
     float diffuse = material.getRoughness();
     float specular = 1.0f - material.getRoughness();
 
@@ -24,7 +24,7 @@ float Rendered::getLightAmount(const glm::vec3& p, const glm::vec3& d)
     float diff = std::max(glm::dot(n, lightDir), 0.0f);
     float spec = (float) glm::pow(diff, 256 - material.getRoughness() * 256);
 
-    return std::min(std::max(ambient + diffuse * diff + specular * spec, 0.0f), 1.0f);
+    return std::min(std::max(ambient + (diffuse * diff + specular * spec) * (1.f - ambient), 0.0f), 1.0f);
 }
 
 glm::vec3 Rendered::render(const glm::vec3& p, const glm::vec3& d)

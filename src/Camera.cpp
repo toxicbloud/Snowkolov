@@ -1,8 +1,8 @@
 #include "Camera.hpp"
 #include <iostream>
 
-Camera::Camera(glm::vec3 p, glm::vec3 r, float f)
-    : Object(p, r), fov(f)
+Camera::Camera(glm::vec3 p, glm::vec3 r)
+    : Object(p, r)
 {
     
 }

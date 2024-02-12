@@ -1,15 +1,35 @@
 #include "Image.hpp"
 #include "Rendered.hpp"
+#include <iostream>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../stb_image_write.h"
 
+#define PI 3.1415926f
+
 Image::Image(int w, int h)
     : width(w), height(h)
 {
     this->frame = std::vector<glm::vec3>(w * h);
+    std::string envmapPath = "./envmap.jpg";
+    int n = -1;
+    unsigned char* data = stbi_load(envmapPath.c_str(), &envmapWidth, &envmapHeight, &n, 0);
+    if (!data || n != 3)
+    {
+        std::cerr << "Error: failed to load envmap" << std::endl;
+        exit(1);
+    }
+    envmapData = std::vector<glm::vec3>(envmapWidth * envmapHeight);
+    for (int i = 0; i < envmapWidth * envmapHeight; i++)
+    {
+        envmapData[i] = glm::vec3(
+            (float) data[i * 3] / 255.f,
+            (float) data[i * 3 + 1] / 255.f,
+            (float) data[i * 3 + 2] / 255.f
+        );
+    }
 }
 
 Image::~Image()
@@ -70,7 +90,19 @@ glm::vec3 Image::renderPixel(const Scene& scene, const glm::vec2& p, const Camer
     }
     if (abs(minDist) < prec * t)
         return object->render(point, dir);
-    return glm::vec3(0.f, 0.f, 0.f);
+    return envmapPixel(dir);
+}
+
+glm::vec3 Image::envmapPixel(const glm::vec3& dir)
+{
+    float u = 0.5f + (float) atan2(dir.z, dir.x) / (2.f * PI);
+    float v = 0.5f - (float) asin(dir.y) / PI;
+
+    int x = (int) (u * envmapWidth);
+    int y = (int) (v * envmapHeight);
+    int index = (x + y * envmapWidth);
+
+    return envmapData[index];
 }
 
 void Image::save(std::string path)

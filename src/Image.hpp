@@ -10,8 +10,12 @@ private:
     int width;
     int height;
     std::vector<glm::vec3> frame;
+    int envmapWidth;
+    int envmapHeight;
+    std::vector<glm::vec3> envmapData;
     
     glm::vec3 renderPixel(const Scene& scene, const glm::vec2& p, const Camera& cam);
+    glm::vec3 envmapPixel(const glm::vec3& d);
 
 public:
     Image(int w, int h);
