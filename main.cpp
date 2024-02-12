@@ -155,7 +155,7 @@ int main()
             pixels[index++] = (uint8_t )ib;
         }
     }
-
+    stbi_flip_vertically_on_write(1);
     stbi_write_png("out.png", width, height, 3, pixels, width * 3);
 
     std::ofstream ofs("./out.ppm", std::ios::binary); // save the framebuffer to file
