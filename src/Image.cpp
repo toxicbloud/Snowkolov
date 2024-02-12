@@ -1,5 +1,5 @@
 #include "Image.hpp"
-#include <iostream>
+#include "Rendered.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../stb_image.h"
@@ -19,6 +19,7 @@ Image::~Image()
 
 void Image::render(const Scene& scene, const Camera& cam)
 {
+    #pragma omp parallel for
     for (int x = 0; x < this->width; x++)
     {
         for (int y = 0; y < this->height; y++)
@@ -41,7 +42,7 @@ glm::vec3 Image::renderPixel(const Scene& scene, const glm::vec2& p, const Camer
 
     glm::mat3 viewMatrix = cam.getViewMatrix();
     glm::vec3 dir = viewMatrix * glm::normalize(glm::vec3(p.x, p.y, focale));
-    glm::vec3 point(cam.position);
+    glm::vec3 point(cam.getPosition());
     float t = focale;
 
     std::vector<Rendered*> objects = scene.getObjects();
@@ -68,7 +69,7 @@ glm::vec3 Image::renderPixel(const Scene& scene, const glm::vec2& p, const Camer
         t += minDist;
     }
     if (abs(minDist) < prec * t)
-        return object->render();
+        return object->render(point, dir);
     return glm::vec3(0.f, 0.f, 0.f);
 }
 

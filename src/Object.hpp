@@ -7,11 +7,17 @@
 
 class Object
 {
-public:
+protected:
     glm::vec3 position;
     glm::vec3 rotation;
-    
+
 public:
     Object(glm::vec3 p, glm::vec3 r);
     ~Object();
+
+    glm::vec3 getPosition() const;
+    glm::vec3 getRotation() const;
+
+    void setPosition(glm::vec3 p);
+    void setRotation(glm::vec3 r);
 };
