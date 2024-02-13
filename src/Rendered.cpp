@@ -18,7 +18,7 @@ float Rendered::getLightAmount(const glm::vec3& p, const glm::vec3& d)
     float diffuse = material.getRoughness();
     float specular = 1.0f - material.getRoughness();
 
-    glm::vec3 n = glm::normalize(p - position);
+    glm::vec3 n = this->normal(p);
 
     glm::vec3 lightDir = glm::normalize(glm::vec3(0, 0, -1));
     float diff = std::max(glm::dot(n, lightDir), 0.0f);

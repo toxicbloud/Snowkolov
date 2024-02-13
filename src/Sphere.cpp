@@ -21,3 +21,7 @@ float Sphere::distance(const glm::vec3& p)
     return glm::length(p - position) - radius;
 }
 
+glm::vec3 Sphere::normal(const glm::vec3& p) const
+{
+    return glm::normalize(p - position);
+}

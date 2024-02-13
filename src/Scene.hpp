@@ -11,4 +11,5 @@ public:
     ~Scene();
     void addObject(Rendered* o);
     std::vector<Rendered*> getObjects() const;
+    glm::vec3 normal(const glm::vec3& p) const;
 };
