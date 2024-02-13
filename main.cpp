@@ -18,16 +18,14 @@ int main(int argc, char const *argv[])
     Material rockMaterial( glm::vec3( 0.4f,  0.4f,  0.4f), 0.6f, 0.4f, 0.0f );
 
     // Add objects
-        // // Body
-        // scene.addObject(new Sphere(glm::vec3(0, 0, 0), 0.8f, snowMaterial));
-        // scene.addObject(new Sphere(glm::vec3(0, 1.0, 0), 0.6f, snowMaterial));
-        // scene.addObject(new Sphere(glm::vec3(0, 1.8, 0), 0.4f, snowMaterial));
+        // Body
+        scene.addObject(new Sphere(glm::vec3(0, 0, 0), 0.8f, snowMaterial));
+        scene.addObject(new Sphere(glm::vec3(0, 1.0, 0), 0.6f, snowMaterial));
+        scene.addObject(new Sphere(glm::vec3(0, 1.8, 0), 0.4f, snowMaterial));
 
-        // // Eyes
-        // scene.addObject(new Sphere(glm::vec3(-0.15, 1.9, -0.3), 0.08f, rockMaterial));
-        // scene.addObject(new Sphere(glm::vec3( 0.15, 1.9, -0.3), 0.08f, rockMaterial));
-
-    scene.addObject(new Capsule(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 0.2f, snowMaterial));
+        // Eyes
+        scene.addObject(new Sphere(glm::vec3(-0.15, 1.9, -0.3), 0.08f, rockMaterial));
+        scene.addObject(new Sphere(glm::vec3( 0.15, 1.9, -0.3), 0.08f, rockMaterial));
 
     float angle = 4.f;
     while (true)
