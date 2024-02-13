@@ -2,7 +2,6 @@
 #include "src/Image.hpp"
 #include "src/Camera.hpp"
 #include "src/Sphere.hpp"
-#include "src/Capsule.hpp"
 #include "src/Scene.hpp"
 #include "src/Material.hpp"
 
