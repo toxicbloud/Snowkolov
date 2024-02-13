@@ -3,19 +3,21 @@
 #include "src/Camera.hpp"
 #include "src/Sphere.hpp"
 #include "src/Capsule.hpp"
+#include "src/Torus.hpp"
 #include "src/Scene.hpp"
 #include "src/Material.hpp"
 
 int main(int argc, char const *argv[])
 {
     Scene scene;
-    Image im(160, 120);
+    Image im(160, 90);
     Camera cam(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0));
 
     // Create materials
-    Material snowMaterial( glm::vec3( 1.0f, 0.95f,  0.9f), 1.0f, 0.1f, 0.0f );
-    Material woodMaterial( glm::vec3(0.55f, 0.27f,  0.0f), 0.8f, 0.1f, 0.0f );
-    Material rockMaterial( glm::vec3( 0.4f,  0.4f,  0.4f), 0.4f, 0.4f, 0.0f );
+    Material snowMaterial ( glm::vec3( 1.0f, 0.95f,  0.9f), 0.9f, 0.1f, 0.0f );
+    Material furMaterial  ( glm::vec3( 1.0f,  1.0f,  1.0f), 1.0f, 0.1f, 0.0f );
+    Material woodMaterial ( glm::vec3(0.55f, 0.27f,  0.0f), 0.8f, 0.1f, 0.0f );
+    Material rockMaterial ( glm::vec3( 0.4f,  0.4f,  0.4f), 0.4f, 0.4f, 0.0f );
 
     // Add objects
         // Body
@@ -37,16 +39,18 @@ int main(int argc, char const *argv[])
         scene.addObject(new Capsule(glm::vec3( 1.0, 1.5, -0.2), glm::vec3( 1.1, 1.7, -0.4),   0.03f, woodMaterial));
         scene.addObject(new Capsule(glm::vec3( 1.0, 1.5, -0.2), glm::vec3( 1.2, 1.6, -0.4),   0.03f, woodMaterial));
         scene.addObject(new Capsule(glm::vec3( 1.0, 1.5, -0.2), glm::vec3( 1.15, 1.5, -0.4), 0.03f, woodMaterial));
-
         scene.addObject(new Capsule(glm::vec3(-1.2, 1.0, -0.1), glm::vec3(-1.25, 1.2, -0.2), 0.03f, woodMaterial));
         scene.addObject(new Capsule(glm::vec3(-1.2, 1.0, -0.1), glm::vec3(-1.35, 1.1, -0.2), 0.03f, woodMaterial));
         scene.addObject(new Capsule(glm::vec3(-1.2, 1.0, -0.1), glm::vec3(-1.25, 0.9, -0.2), 0.03f, woodMaterial));
 
+        // Hat
+        scene.addObject(new Torus(glm::vec3(0, 2.1, 0), 0.25f, 0.1f, furMaterial));
+
     float angle = 4.f;
     while (true)
     {
-        float radius = 3;
-        glm::vec3 focus(0.0, 1.0, 0.0);
+        float radius = 1.5f;
+        glm::vec3 focus(0, 2.2, 0);
         glm::vec3 shift(radius * cos(angle), radius / 2, radius * sin(angle));
         cam.setPosition(focus + shift);
         cam.setRotation(focus);
