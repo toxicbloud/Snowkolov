@@ -5,6 +5,7 @@
 #include "src/Capsule.hpp"
 #include "src/Scene.hpp"
 #include "src/Material.hpp"
+#include "src/SmoothUnion.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -18,10 +19,13 @@ int main(int argc, char const *argv[])
     Material rockMaterial( glm::vec3( 0.4f,  0.4f,  0.4f), 0.4f, 0.4f, 0.0f );
 
     // Add objects
-        // Body
-        scene.addObject(new Sphere(glm::vec3(0, 0, 0), 0.8f, snowMaterial));
-        scene.addObject(new Sphere(glm::vec3(0, 1.0, 0), 0.6f, snowMaterial));
-        scene.addObject(new Sphere(glm::vec3(0, 1.8, 0), 0.4f, snowMaterial));
+    // Body
+    scene.addObject(new SmoothUnion(
+        new Sphere(glm::vec3(0, 0, 0), 0.8f, snowMaterial),
+        new Sphere(glm::vec3(0, 1.0, 0), 0.6f, snowMaterial),
+        0.2f,
+        snowMaterial));
+    scene.addObject(new Sphere(glm::vec3(0, 1.8, 0), 0.4f, snowMaterial));
 
         // Eyes
         scene.addObject(new Sphere(glm::vec3(-0.15, 1.9, -0.3), 0.08f, rockMaterial));
