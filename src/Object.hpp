@@ -15,6 +15,8 @@ public:
     Object(glm::vec3 p, glm::vec3 r);
     ~Object();
 
+    glm::vec3 getRotatedPoint(const glm::vec3 &p) const;
+
     glm::vec3 getPosition() const;
     glm::vec3 getRotation() const;
 
