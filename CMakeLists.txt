@@ -20,7 +20,8 @@ if (WIN32)
     # Vérifie si le compilateur est MSVC
     if (MSVC)
         # Activer le support OpenMP pour MSVC
-        enable_cxx_compiler_flag_if_supported("/openmp /O2")
+        enable_cxx_compiler_flag_if_supported("/openmp")
+        add_compile_options(/O2)
     endif()
 endif()
 
