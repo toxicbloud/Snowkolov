@@ -15,7 +15,7 @@ float Capsule::distance(const glm::vec3 &p) const
     glm::vec3 pa = p - this->position,
               ba = this->position2 - this->position;
 
-    float h = std::min(std::max(dot(pa,ba) / dot(ba,ba), 0.f), 1.f);
+    float h = glm::min(glm::max(glm::dot(pa,ba) / glm::dot(ba,ba), 0.f), 1.f);
     return length( pa - ba*h ) - thickness;
 }
 
@@ -24,7 +24,7 @@ glm::vec3 Capsule::normal(const glm::vec3 &p) const
     glm::vec3 pa = p - this->position,
               ba = this->position2 - this->position;
 
-    float h = std::min(std::max(dot(pa,ba) / dot(ba,ba), 0.f), 1.f);
-    glm::vec3 n = normalize(pa - ba*h);
+    float h = glm::min(glm::max(glm::dot(pa,ba) / glm::dot(ba,ba), 0.f), 1.f);
+    glm::vec3 n = glm::normalize(pa - ba*h);
     return n;
 }

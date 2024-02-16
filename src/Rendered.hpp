@@ -10,8 +10,8 @@ protected:
     float getLightAmount(const glm::vec3& p, const glm::vec3& d);
     Material material;
 
-    virtual float distance(const glm::vec3& p) const = NULL;
-    virtual glm::vec3 normal(const glm::vec3& p) const = NULL;
+    virtual float distance(const glm::vec3& p) const = 0;
+    virtual glm::vec3 normal(const glm::vec3& p) const = 0;
 
 public:
     Rendered(glm::vec3 p, glm::vec3 r, Material m);
