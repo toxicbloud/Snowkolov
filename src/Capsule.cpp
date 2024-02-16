@@ -10,7 +10,7 @@ Capsule::~Capsule()
 {
 }
 
-float Capsule::distance(const glm::vec3 &p)
+float Capsule::distance(const glm::vec3 &p) const
 {
     glm::vec3 pa = p - this->position,
               ba = this->position2 - this->position;

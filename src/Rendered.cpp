@@ -27,9 +27,14 @@ float Rendered::getLightAmount(const glm::vec3& p, const glm::vec3& d)
     return std::min(std::max(ambient + (diffuse * diff + specular * spec) * (1.f - ambient), 0.0f), 1.0f);
 }
 
-float Rendered::getDistance(const glm::vec3& p)
+float Rendered::getDistance(const glm::vec3& p) const
 {
     return this->distance(this->getRotatedPoint(p));
+}
+
+glm::vec3 Rendered::getNormal(const glm::vec3 &p) const
+{
+    return this->normal(p);
 }
 
 glm::vec3 Rendered::render(const glm::vec3& p, const glm::vec3& d)

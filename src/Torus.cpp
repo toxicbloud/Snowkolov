@@ -11,7 +11,7 @@ Torus::~Torus()
 {
 }
 
-float Torus::distance(const glm::vec3 &p)
+float Torus::distance(const glm::vec3 &p) const
 {
     glm::vec2 q = glm::vec2(glm::length(glm::vec2(p.x - position.x, p.z - position.z)) - radius, p.y - position.y);
     return glm::length(q) - thickness;

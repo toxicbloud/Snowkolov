@@ -1,15 +1,15 @@
 #pragma once
 #include "Rendered.hpp"
 
-class SmoothUnion : public Rendered
+class Cone : public Rendered
 {
 private:
-    Rendered *a, *b;
-    float k;
+    const glm::vec2 c;
+    const float h;
 
 public:
-    SmoothUnion(Rendered *a, Rendered *b, float k, Material m);
-    ~SmoothUnion();
+    Cone(glm::vec3 p, glm::vec2 c, float h, Material m);
+    ~Cone();
 
     float distance(const glm::vec3 &p) const;
     glm::vec3 render(const glm::vec3 &p, const glm::vec3 &d);
