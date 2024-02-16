@@ -75,7 +75,7 @@ glm::vec3 Image::renderPixel(const Scene& scene, const glm::vec2& p, const Camer
         for (size_t i = 0; i < nbObjects; i++)
         {
             Rendered* r = objects[i];
-            float dist = r->distance(point);
+            float dist = r->getDistance(point);
             if (dist < minDist)
             {
                 minDist = dist;
