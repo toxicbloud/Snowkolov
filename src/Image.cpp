@@ -58,7 +58,7 @@ void Image::render(const Scene& scene, const Camera& cam)
 glm::vec3 Image::renderPixel(const Scene& scene, const glm::vec2& p, const Camera& cam)
 {
     float focale = 2.f;
-    float prec = 0.0001f;
+    float prec = 0.001f;
 
     glm::mat3 viewMatrix = cam.getViewMatrix();
     glm::vec3 dir = viewMatrix * glm::normalize(glm::vec3(p.x, p.y, focale));

@@ -16,11 +16,12 @@ int main(int argc, char const *argv[])
     Camera cam(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0));
 
     // Create materials
-    Material snowMaterial ( glm::vec3( 1.0f, 0.95f,  0.9f), 0.9f, 0.1f, 0.0f );
-    Material furMaterial  ( glm::vec3( 1.0f,  1.0f,  1.0f), 1.0f, 0.1f, 0.0f );
-    Material woodMaterial ( glm::vec3(0.55f, 0.27f,  0.0f), 0.8f, 0.1f, 0.0f );
-    Material rockMaterial ( glm::vec3( 0.4f,  0.4f,  0.4f), 0.4f, 0.4f, 0.0f );
-    Material carrotMaterial( glm::vec3( 0.97f,  0.5f,  0.12f), 0.6f, 0.1f, 0.0f );
+    Material snowMaterial   ( glm::vec3( 1.0f, 0.95f,  0.9f),  0.9f, 0.1f, 0.0f );
+    Material furMaterial    ( glm::vec3( 1.0f,  1.0f,  1.0f),  1.0f, 0.1f, 0.0f );
+    Material redMaterial    ( glm::vec3( 1.0f,  0.1f,  0.2f),  1.0f, 0.1f, 0.0f );
+    Material woodMaterial   ( glm::vec3(0.55f, 0.27f,  0.0f),  0.8f, 0.1f, 0.0f );
+    Material rockMaterial   ( glm::vec3( 0.4f,  0.4f,  0.4f),  0.4f, 0.4f, 0.0f );
+    Material carrotMaterial ( glm::vec3(0.97f,  0.5f,  0.12f), 0.6f, 0.1f, 0.0f );
 
     // Add objects
         // Body
@@ -55,13 +56,20 @@ int main(int argc, char const *argv[])
 
         // Hat
         scene.addObject(new Torus(glm::vec3(0, 2.1, 0), 0.25f, 0.1f, furMaterial));
+        scene.addObject(new SmoothUnion(
+            new Cone(glm::vec3(0, 2.21, 0), glm::vec3(0, 0, 0), 0.25f, 0.35f, redMaterial),
+            new Capsule(glm::vec3(0, 2.46, 0), glm::vec3(-0.05, 2.56, 0.1), 0.07f, redMaterial),
+            0.1f,
+            redMaterial
+        ));
+        scene.addObject(new Sphere(glm::vec3(-0.12, 2.52, 0.14), 0.07f, snowMaterial));
 
     float angle = deg2rad(-90.f);
     const bool loop = true;
     do
     {
         float radius = 3.f;
-        glm::vec3 focus(0, 1.2, 0);
+        glm::vec3 focus(0, 1.6, 0);
         glm::vec3 shift(radius * cos(angle), radius / 2, radius * sin(angle));
         cam.setPosition(focus + shift);
         cam.setRotation(focus);
