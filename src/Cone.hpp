@@ -4,11 +4,11 @@
 class Cone : public Rendered
 {
 private:
-    const glm::vec2 c;
-    const float h;
+    float radius;
+    float height;
 
 public:
-    Cone(glm::vec3 p, glm::vec2 c, float h, Material m);
+    Cone(glm::vec3 p, glm::vec3 r, float d, float h, Material m);
     ~Cone();
 
     float distance(const glm::vec3 &p) const;
