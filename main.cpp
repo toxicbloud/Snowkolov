@@ -8,11 +8,14 @@
 #include "src/Material.hpp"
 #include "src/SmoothUnion.hpp"
 #include "src/Cone.hpp"
+#include "src/Noise.hpp"
+
+#define SNOW_NOISE(x) new Noise(x, 23.f, 0.01f, 768.0f)
 
 int main(int argc, char const *argv[])
 {
     Scene scene;
-    Image im(320, 320);
+    Image im(200, 200);
     Camera cam(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0));
 
     // Create materials
@@ -26,12 +29,12 @@ int main(int argc, char const *argv[])
     // Add objects
         // Body
         scene.addObject(new SmoothUnion(
-            new Sphere(glm::vec3(0, 0, 0), 0.8f, snowMaterial),
-            new Sphere(glm::vec3(0, 1.0, 0), 0.6f, snowMaterial),
+            SNOW_NOISE(new Sphere(glm::vec3(0, 0, 0), 0.8f, snowMaterial)),
+            SNOW_NOISE(new Sphere(glm::vec3(0, 1.0, 0), 0.6f, snowMaterial)),
             0.2f,
             snowMaterial
         ));
-        scene.addObject(new Sphere(glm::vec3(0, 1.8, 0), 0.4f, snowMaterial));
+        scene.addObject(SNOW_NOISE(new Sphere(glm::vec3(0, 1.8, 0), 0.4f, snowMaterial)));
 
         // Eyes
         scene.addObject(new Sphere(glm::vec3(-0.15, 1.9, -0.3), 0.08f, rockMaterial));
@@ -65,7 +68,7 @@ int main(int argc, char const *argv[])
         scene.addObject(new Sphere(glm::vec3(-0.12, 2.52, 0.14), 0.07f, snowMaterial));
 
     float angle = deg2rad(-90.f);
-    const bool loop = true;
+    const bool loop = false;
     do
     {
         float radius = 3.f;

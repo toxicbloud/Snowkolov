@@ -54,11 +54,11 @@ void Image::render(const Scene& scene, const Camera& cam)
     }
 }
 
-#define MAX_NB_ITER 50
+#define MAX_NB_ITER 200
 glm::vec3 Image::renderPixel(const Scene& scene, const glm::vec2& p, const Camera& cam)
 {
     float focale = 2.f;
-    float prec = 0.001f;
+    float prec = 0.002f;
 
     glm::mat3 viewMatrix = cam.getViewMatrix();
     glm::vec3 dir = viewMatrix * glm::normalize(glm::vec3(p.x, p.y, focale));
@@ -82,9 +82,9 @@ glm::vec3 Image::renderPixel(const Scene& scene, const glm::vec2& p, const Camer
                 object = r;
             }
         }
-
+        
         if (abs(minDist) < prec * t) break;
-
+        
         point += dir * minDist;
         t += minDist;
     }
