@@ -67,7 +67,7 @@ int main(int argc, char const *argv[])
         ));
         scene.addObject(new Sphere(glm::vec3(-0.12, 2.52, 0.14), 0.07f, snowMaterial));
 
-    float angle = deg2rad(-90.f);
+    float angle = deg2rad(-105.f);
     const bool loop = false;
     do
     {
