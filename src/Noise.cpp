@@ -1,17 +1,15 @@
 #include "Noise.hpp"
+#include "db_perlin.hpp"
 
-float noise(float x)
+float noise3D(float x, float y, float z, float scale, float seed)
 {
-    return glm::sin(2 * x) + glm::sin(PI * x);
+    return db::perlin(x * scale + seed, y * scale + seed, z * scale + seed);
 }
 
-glm::vec3 noise3D(glm::vec3 p, float scale, float strength, float seed)
+float getNoisedDistance(const Rendered* target, const glm::vec3& p, float scale, float strength, float seed)
 {
-    return glm::vec3(
-        noise(p.x * scale + seed + 13.f) * strength,
-        noise(p.y * scale + seed + 89.f) * strength,
-        noise(p.z * scale + seed + 193.f) * strength
-    );
+    float noise = noise3D(p.x, p.y, p.z, scale, seed);
+    return target->getDistance(p) + noise * strength;
 }
 
 Noise::Noise(const Rendered* target, float scale, float strength, float seed)
@@ -28,12 +26,19 @@ Noise::~Noise()
 
 float Noise::distance(const glm::vec3& p) const
 {
-    glm::vec3 noisedPoint = p + noise3D(p, scale, strength, seed);
-    return target->getDistance(noisedPoint);
+    // returning distance without noise to save performance
+    // (noise will be like a normal map, not modifying the model's shape)
+    return target->getDistance(p);
 }
 
 glm::vec3 Noise::normal(const glm::vec3& p) const
 {
-    glm::vec3 noisedPoint = p + noise3D(p, scale, strength, seed);
-    return target->getNormal(noisedPoint);
+    // calculating normal using finite differences
+    // not the best performance-friendly way to do it, but it's the easiest
+    float e = 0.01f;
+    return glm::normalize(glm::vec3(
+        getNoisedDistance(target, p + glm::vec3(e, 0, 0), scale, strength, seed) - getNoisedDistance(target, p - glm::vec3(e, 0, 0), scale, strength, seed),
+        getNoisedDistance(target, p + glm::vec3(0, e, 0), scale, strength, seed) - getNoisedDistance(target, p - glm::vec3(0, e, 0), scale, strength, seed),
+        getNoisedDistance(target, p + glm::vec3(0, 0, e), scale, strength, seed) - getNoisedDistance(target, p - glm::vec3(0, 0, e), scale, strength, seed)
+    ));
 }

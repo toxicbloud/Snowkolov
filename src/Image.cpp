@@ -54,7 +54,7 @@ void Image::render(const Scene& scene, const Camera& cam)
     }
 }
 
-#define MAX_NB_ITER 200
+#define MAX_NB_ITER 300
 glm::vec3 Image::renderPixel(const Scene& scene, const glm::vec2& p, const Camera& cam)
 {
     float focale = 2.f;

@@ -10,12 +10,12 @@
 #include "src/Cone.hpp"
 #include "src/Noise.hpp"
 
-#define SNOW_NOISE(x) new Noise(x, 23.f, 0.01f, 768.0f)
+#define SNOW_NOISE(x) new Noise(x, 8.f, 0.01f, 5621.0f)
 
 int main(int argc, char const *argv[])
 {
     Scene scene;
-    Image im(200, 200);
+    Image im(256, 256);
     Camera cam(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0));
 
     // Create materials
@@ -72,7 +72,7 @@ int main(int argc, char const *argv[])
     do
     {
         float radius = 3.f;
-        glm::vec3 focus(0, 1.6, 0);
+        glm::vec3 focus(0, 1.2, 0);
         glm::vec3 shift(radius * cos(angle), radius / 2, radius * sin(angle));
         cam.setPosition(focus + shift);
         cam.setRotation(focus);
