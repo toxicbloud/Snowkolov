@@ -15,7 +15,7 @@
 int main(int argc, char const *argv[])
 {
     Scene scene;
-    Image im(256, 256);
+    Image im(512, 512);
     Camera cam(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0));
 
     // Create materials
