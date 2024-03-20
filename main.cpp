@@ -25,6 +25,7 @@ int main(int argc, char const *argv[])
     Material woodMaterial   ( glm::vec3(0.55f, 0.27f,  0.0f),  0.8f, 0.1f, 0.0f );
     Material rockMaterial   ( glm::vec3( 0.4f,  0.4f,  0.4f),  0.4f, 0.4f, 0.0f );
     Material carrotMaterial ( glm::vec3(0.97f,  0.5f,  0.12f), 0.6f, 0.1f, 0.0f );
+    Material treeMaterial   ( glm::vec3(0.13f, 0.55f, 0.13f), 0.8f, 0.1f, 0.0f );
 
     // Add objects
         // Body
@@ -66,6 +67,20 @@ int main(int argc, char const *argv[])
             redMaterial
         ));
         scene.addObject(new Sphere(glm::vec3(-0.12, 2.52, 0.14), 0.07f, snowMaterial));
+
+        // christmas tree
+        scene.addObject(new SmoothUnion(
+            new Cone(glm::vec3(1.5f, 0.f, 2.5f), glm::vec3(0, 0, 0), 1.f, 1.5f, woodMaterial),
+            new Cone(glm::vec3(1.5f, 0.8f, 2.5f), glm::vec3(0, 0, 0), 0.8f, 1.2f, woodMaterial),
+            0.1f,
+            treeMaterial
+        ));
+        scene.addObject(new SmoothUnion(
+            new Cone(glm::vec3(1.5f, 1.6f, 2.5f), glm::vec3(0, 0, 0), 0.6f, 0.8f, woodMaterial),
+            new Cone(glm::vec3(1.5f, 2.2f, 2.5f), glm::vec3(0, 0, 0), 0.4f, 0.6f, woodMaterial),
+            0.1f,
+            treeMaterial
+        ));
 
     float angle = deg2rad(-105.f);
     const bool loop = false;
