@@ -139,6 +139,7 @@ inline float boxfilter( float x, float min, float max )
 		return x;
 }
 
+#define MAX_DIST 10.f
 #define MAX_NB_ITER 300
 glm::vec3 Image::renderPixel(const Scene& scene, const glm::vec2& p, const Camera& cam)
 {
@@ -168,7 +169,7 @@ glm::vec3 Image::renderPixel(const Scene& scene, const glm::vec2& p, const Camer
             }
         }
         
-        if (abs(minDist) < prec * t) break;
+        if (abs(minDist) < prec * t || t > MAX_DIST) break;
         
         point += dir * minDist;
         t += minDist;
